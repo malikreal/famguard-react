@@ -223,7 +223,7 @@ export default function FamguardApp() {
   if (isInitializing) {
     return (
       <div className="min-h-screen bg-[#121212] flex items-center justify-center">
-        <img src="Picsart_26-08-12_14-24-54-735.jpg" alt="Famguard Logo" className="w-16 h-16 animate-pulse drop-shadow-[0_0_15px_rgba(234,179,8,0.5)]" />
+        <img src="logo.png" alt="Famguard Logo" className="w-16 h-16 animate-pulse drop-shadow-[0_0_15px_rgba(234,179,8,0.5)]" />
       </div>
     );
   }
