@@ -8,7 +8,6 @@ import {
 } from 'lucide-react';
 
 // --- FIREBASE INITIALIZATION ---
-// Preserved exact configuration and logic[cite: 1]
 const firebaseConfig = {
   apiKey: "AIzaSyB5BlBrKRYm_T1ryg8l6zx4em9sqL117L8",
   authDomain: "famguard-99.firebaseapp.com",
@@ -25,8 +24,26 @@ if (!firebase.apps.length) {
 const db = firebase.firestore();
 const auth = firebase.auth();
 
+// --- REUSABLE COMPONENTS ---
+const Input = (props) => (
+  <input {...props} className="w-full p-3 mb-4 bg-[#121212] border border-[#333333] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10B981] focus:border-transparent transition-all" />
+);
+
+const Button = ({ children, variant = 'primary', className = '', ...props }) => {
+  const base = "px-4 py-2 rounded-md font-bold transition-opacity disabled:opacity-50 text-white flex items-center justify-center gap-2";
+  const variants = {
+    primary: "bg-[#10B981] hover:opacity-80",
+    secondary: "bg-[#3B82F6] hover:opacity-80",
+    danger: "bg-[#EF4444] hover:opacity-80",
+    warning: "bg-[#F59E0B] hover:opacity-80",
+    outline: "bg-transparent border border-[#333333] hover:bg-[#262626]"
+  };
+  return <button className={`${base} ${variants[variant]} ${className}`} {...props}>{children}</button>;
+};
+
 export default function FamguardApp() {
   // --- STATE MANAGEMENT ---
+  const [isInitializing, setIsInitializing] = useState(true);
   const [user, setUser] = useState(null);
   const [group, setGroup] = useState(null);
   const [members, setMembers] = useState([]);
@@ -43,6 +60,7 @@ export default function FamguardApp() {
   useEffect(() => {
     const unsubscribeAuth = auth.onAuthStateChanged((currentUser) => {
       setUser(currentUser);
+      setIsInitializing(false);
       if (!currentUser) {
         setGroup(null);
         setMembers([]);
@@ -54,7 +72,6 @@ export default function FamguardApp() {
   useEffect(() => {
     if (!user) return;
     
-    // Group Listener[cite: 1]
     const unsubscribeGroup = db.collection("groups")
       .where("adminUid", "==", user.uid)
       .limit(1)
@@ -74,7 +91,6 @@ export default function FamguardApp() {
   useEffect(() => {
     if (!group?.group_code) return;
 
-    // Members Listener[cite: 1]
     const unsubscribeMembers = db.collection("groups").doc(group.group_code).collection("members")
       .onSnapshot((querySnapshot) => {
         const membersList = [];
@@ -123,8 +139,7 @@ export default function FamguardApp() {
         adminUid: user.uid,
         admin_note: "Welcome to our data pool!",
         locked: false,
-        quota_gb: Number(newQuota),
-        kicked_data_gb: 0 
+        quota_gb: Number(newQuota)
       });
     } catch (error) {
       showToast("Failed to create group: " + error.message, 'error');
@@ -165,6 +180,7 @@ export default function FamguardApp() {
     }
   };
 
+  // Reverted back to original behavior: deletes member and removes their data from the total calculation
   const deleteMember = async () => {
     try {
       await db.collection("groups").doc(group.group_code).collection("members").doc(dialog.data.uid).delete();
@@ -199,29 +215,21 @@ export default function FamguardApp() {
   };
 
   // --- CALCULATIONS ---
-  const totalConsumed = members.reduce((sum, m) => sum + (m.data_gb || 0), group?.kicked_data_gb || 0);
+  // Calculates total based ONLY on currently active members
+  const totalConsumed = members.reduce((sum, m) => sum + (m.data_gb || 0), 0);
   const safeQuota = group?.quota_gb > 0 ? group.quota_gb : 1;
   let poolPercent = group?.quota_gb > 0 ? (totalConsumed / group.quota_gb) * 100 : 0;
   if (poolPercent > 100) poolPercent = 100;
 
-  // --- RENDER HELPERS ---
-  const Input = (props) => (
-    <input {...props} className="w-full p-3 mb-4 bg-[#121212] border border-[#333333] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10B981] focus:border-transparent transition-all" />
-  );
-
-  const Button = ({ children, variant = 'primary', className = '', ...props }) => {
-    const base = "px-4 py-2 rounded-md font-bold transition-opacity disabled:opacity-50 text-white flex items-center justify-center gap-2";
-    const variants = {
-      primary: "bg-[#10B981] hover:opacity-80",
-      secondary: "bg-[#3B82F6] hover:opacity-80",
-      danger: "bg-[#EF4444] hover:opacity-80",
-      warning: "bg-[#F59E0B] hover:opacity-80",
-      outline: "bg-transparent border border-[#333333] hover:bg-[#262626]"
-    };
-    return <button className={`${base} ${variants[variant]} ${className}`} {...props}>{children}</button>;
-  };
-
   // --- VIEWS ---
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen bg-[#121212] flex items-center justify-center">
+        <Shield className="w-12 h-12 text-[#10B981] animate-pulse" />
+      </div>
+    );
+  }
+
   if (!user) {
     return (
       <div className="min-h-screen bg-[#121212] text-white flex items-center justify-center p-4">
@@ -313,9 +321,6 @@ export default function FamguardApp() {
                 style={{ width: `${poolPercent}%` }}
               ></div>
             </div>
-            {group.kicked_data_gb > 0 && (
-              <div className="text-xs text-[#F59E0B] mt-2">Includes {group.kicked_data_gb.toFixed(2)} GB from removed devices.</div>
-            )}
           </div>
         </div>
 
@@ -375,7 +380,6 @@ export default function FamguardApp() {
                         </div>
                       </td>
                       <td className="p-4 text-right">
-                        {/* Shadcn-style Dropdown representation using standard state (In real environment, use Radix UI DropdownMenu) */}
                         <div className="relative inline-block text-left">
                           <button onClick={() => setDialog({ show: true, type: 'memberMenu', data: member })} className="text-[#A0A0A0] hover:text-white p-2">
                             <MoreVertical size={20} />
@@ -403,7 +407,7 @@ export default function FamguardApp() {
         </div>
       </div>
 
-      {/* --- CUSTOM DIALOGS (Replacing prompt() and alert()) --- */}
+      {/* --- CUSTOM DIALOGS --- */}
       {dialog.show && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
           <div className="bg-[#1E1E1E] border border-[#333333] p-6 rounded-xl w-full max-w-sm shadow-2xl">
@@ -437,7 +441,7 @@ export default function FamguardApp() {
             {dialog.type === 'deleteMember' && (
               <>
                 <h3 className="text-[#EF4444] font-bold mb-2 flex items-center gap-2"><AlertTriangle size={20}/> Confirm Deletion</h3>
-                <p className="text-sm text-[#A0A0A0] mb-6">Are you sure you want to permanently delete this device and erase their data from the total pool?</p>
+                <p className="text-sm text-[#A0A0A0] mb-6">Are you sure you want to permanently delete this device? Their data usage will be removed from the total pool.</p>
                 <div className="flex gap-3 justify-end">
                   <Button variant="outline" onClick={closeDialog}>Cancel</Button>
                   <Button variant="danger" onClick={deleteMember}>Delete</Button>
