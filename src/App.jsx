@@ -3,7 +3,7 @@ import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 import 'firebase/compat/firestore';
 import { 
-  Shield, Trash2, Pause, Play, MoreVertical, 
+  Trash2, Pause, Play, MoreVertical, 
   Copy, Lock, Unlock, AlertTriangle, CheckCircle 
 } from 'lucide-react';
 
@@ -26,17 +26,17 @@ const auth = firebase.auth();
 
 // --- REUSABLE COMPONENTS ---
 const Input = (props) => (
-  <input {...props} className="w-full p-3 mb-4 bg-[#121212] border border-[#333333] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#10B981] focus:border-transparent transition-all" />
+  <input {...props} className="w-full p-3 mb-4 bg-[#121212] border border-[#333333] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#EAB308] focus:border-transparent transition-all" />
 );
 
 const Button = ({ children, variant = 'primary', className = '', ...props }) => {
-  const base = "px-4 py-2 rounded-md font-bold transition-opacity disabled:opacity-50 text-white flex items-center justify-center gap-2";
+  const base = "px-4 py-2 rounded-md font-bold transition-opacity disabled:opacity-50 flex items-center justify-center gap-2";
   const variants = {
-    primary: "bg-[#10B981] hover:opacity-80",
-    secondary: "bg-[#3B82F6] hover:opacity-80",
-    danger: "bg-[#EF4444] hover:opacity-80",
-    warning: "bg-[#F59E0B] hover:opacity-80",
-    outline: "bg-transparent border border-[#333333] hover:bg-[#262626]"
+    primary: "bg-[#EAB308] text-[#121212] hover:opacity-90", // Updated to Gold with dark text
+    secondary: "bg-[#3B82F6] text-white hover:opacity-80",
+    danger: "bg-[#EF4444] text-white hover:opacity-80",
+    warning: "bg-[#F59E0B] text-white hover:opacity-80",
+    outline: "bg-transparent border border-[#333333] text-white hover:bg-[#262626]"
   };
   return <button className={`${base} ${variants[variant]} ${className}`} {...props}>{children}</button>;
 };
@@ -180,7 +180,6 @@ export default function FamguardApp() {
     }
   };
 
-  // Reverted back to original behavior: deletes member and removes their data from the total calculation
   const deleteMember = async () => {
     try {
       await db.collection("groups").doc(group.group_code).collection("members").doc(dialog.data.uid).delete();
@@ -215,7 +214,6 @@ export default function FamguardApp() {
   };
 
   // --- CALCULATIONS ---
-  // Calculates total based ONLY on currently active members
   const totalConsumed = members.reduce((sum, m) => sum + (m.data_gb || 0), 0);
   const safeQuota = group?.quota_gb > 0 ? group.quota_gb : 1;
   let poolPercent = group?.quota_gb > 0 ? (totalConsumed / group.quota_gb) * 100 : 0;
@@ -225,7 +223,7 @@ export default function FamguardApp() {
   if (isInitializing) {
     return (
       <div className="min-h-screen bg-[#121212] flex items-center justify-center">
-        <Shield className="w-12 h-12 text-[#10B981] animate-pulse" />
+        <img src="Picsart_26-08-12_14-24-54-735.jpg" alt="Famguard Logo" className="w-16 h-16 animate-pulse drop-shadow-[0_0_15px_rgba(234,179,8,0.5)]" />
       </div>
     );
   }
@@ -234,9 +232,9 @@ export default function FamguardApp() {
     return (
       <div className="min-h-screen bg-[#121212] text-white flex items-center justify-center p-4">
         <div className="bg-[#1E1E1E] border border-[#333333] p-8 rounded-xl w-full max-w-md shadow-2xl relative group">
-          <div className="absolute inset-0 bg-[#10B981]/10 rounded-xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500"></div>
+          <div className="absolute inset-0 bg-[#EAB308]/5 rounded-xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500"></div>
           <div className="relative z-10 text-center">
-            <Shield className="w-12 h-12 mx-auto text-[#10B981] mb-4" />
+            <img src="Picsart_26-08-12_14-24-54-735.jpg" alt="Famguard Logo" className="w-20 h-20 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(234,179,8,0.3)]" />
             <h2 className="text-2xl font-bold mb-2">Famguard Admin</h2>
             <p className="text-[#A0A0A0] text-sm mb-6">Sign in or register to securely manage your pool.</p>
             <Input type="email" placeholder="Email Address" value={authForm.email} onChange={e => setAuthForm({...authForm, email: e.target.value})} />
@@ -245,9 +243,8 @@ export default function FamguardApp() {
             <Button className="w-full" variant="outline" onClick={() => handleAuth('signup')}>Create Account</Button>
           </div>
         </div>
-        {/* Toast Overlay */}
         {toast.show && (
-          <div className={`fixed bottom-4 right-4 p-4 rounded-md shadow-lg border ${toast.type === 'error' ? 'bg-[#1E1E1E] border-[#EF4444] text-[#EF4444]' : 'bg-[#1E1E1E] border-[#10B981] text-[#10B981]'}`}>
+          <div className={`fixed bottom-4 right-4 p-4 rounded-md shadow-lg border ${toast.type === 'error' ? 'bg-[#1E1E1E] border-[#EF4444] text-[#EF4444]' : 'bg-[#1E1E1E] border-[#EAB308] text-[#EAB308]'}`}>
             {toast.message}
           </div>
         )}
@@ -259,7 +256,10 @@ export default function FamguardApp() {
     return (
       <div className="min-h-screen bg-[#121212] text-white p-6 flex flex-col items-center">
         <header className="w-full max-w-4xl flex justify-between items-center mb-12">
-          <div className="flex items-center gap-2 text-xl font-bold"><Shield className="text-[#10B981]"/> Famguard</div>
+          <div className="flex items-center gap-3 text-xl font-bold">
+            <img src="Picsart_26-08-12_14-24-54-735.jpg" alt="Famguard Logo" className="w-8 h-8" /> 
+            Famguard
+          </div>
           <div className="flex items-center gap-4">
             <span className="text-[#A0A0A0] text-sm">{user.email}</span>
             <Button variant="outline" onClick={() => auth.signOut()}>Sign Out</Button>
@@ -282,7 +282,10 @@ export default function FamguardApp() {
     <div className="min-h-screen bg-[#121212] text-white p-6 flex justify-center">
       <div className="w-full max-w-5xl">
         <header className="flex justify-between items-center mb-8">
-          <div className="flex items-center gap-2 text-2xl font-bold"><Shield className="text-[#10B981]"/> Famguard</div>
+          <div className="flex items-center gap-3 text-2xl font-bold">
+            <img src="Picsart_26-08-12_14-24-54-735.jpg" alt="Famguard Logo" className="w-10 h-10" /> 
+            Famguard
+          </div>
           <div className="flex items-center gap-4">
             <span className="text-[#A0A0A0] text-sm hidden md:block">{user.email}</span>
             <Button variant="outline" onClick={() => auth.signOut()}>Sign Out</Button>
@@ -294,7 +297,7 @@ export default function FamguardApp() {
           <div className="bg-[#1E1E1E] border border-[#333333] p-6 rounded-xl flex justify-between items-center shadow-md">
             <div>
               <h3 className="text-[#A0A0A0] font-semibold mb-1">Active Group ID</h3>
-              <h1 className="text-3xl font-bold text-[#10B981]">{group.group_code}</h1>
+              <h1 className="text-3xl font-bold text-[#EAB308]">{group.group_code}</h1>
             </div>
             <div className="flex flex-col gap-2">
               <Button variant="outline" className="text-sm py-1" onClick={copyCode}><Copy size={16}/> Copy</Button>
@@ -317,7 +320,7 @@ export default function FamguardApp() {
             </div>
             <div className="h-3 w-full bg-[#121212] rounded-full overflow-hidden border border-[#333333]">
               <div 
-                className={`h-full transition-all duration-500 ${poolPercent > 90 ? 'bg-[#EF4444] animate-pulse' : poolPercent > 70 ? 'bg-[#F59E0B]' : 'bg-[#10B981]'}`}
+                className={`h-full transition-all duration-500 ${poolPercent > 90 ? 'bg-[#EF4444] animate-pulse' : poolPercent > 70 ? 'bg-[#F59E0B]' : 'bg-[#EAB308]'}`}
                 style={{ width: `${poolPercent}%` }}
               ></div>
             </div>
@@ -328,7 +331,7 @@ export default function FamguardApp() {
         <div className="bg-[#1E1E1E] border border-[#333333] p-6 rounded-xl mb-6 shadow-md">
           <h3 className="font-semibold mb-4">Admin Note to Members</h3>
           <textarea 
-            className="w-full p-3 bg-[#121212] border border-[#333333] rounded-lg text-white focus:outline-none focus:border-[#10B981] mb-3"
+            className="w-full p-3 bg-[#121212] border border-[#333333] rounded-lg text-white focus:outline-none focus:border-[#EAB308] mb-3"
             rows="2" value={adminNote} onChange={e => setAdminNote(e.target.value)}
           ></textarea>
           <Button variant="primary" onClick={broadcastNote}>Save & Broadcast</Button>
@@ -364,7 +367,7 @@ export default function FamguardApp() {
                         <div className="text-xs text-[#A0A0A0]">{member.device_model || "Unknown Device"}</div>
                       </td>
                       <td className="p-4">
-                        <span className={`px-2 py-1 text-xs font-bold uppercase rounded-md border ${isPaused ? 'bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]' : 'bg-[#10B981]/10 text-[#10B981] border-[#10B981]'}`}>
+                        <span className={`px-2 py-1 text-xs font-bold uppercase rounded-md border ${isPaused ? 'bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]' : 'bg-[#EAB308]/10 text-[#EAB308] border-[#EAB308]'}`}>
                           {isPaused ? 'Paused' : 'Active'}
                         </span>
                       </td>
@@ -374,7 +377,7 @@ export default function FamguardApp() {
                         <div className="font-bold text-sm mb-1">{dataUsed.toFixed(2)} GB</div>
                         <div className="h-1.5 w-full bg-[#121212] rounded-full overflow-hidden">
                           <div 
-                            className={`h-full transition-all ${memberSharePercent > 50 ? 'bg-[#EF4444]' : memberSharePercent > 25 ? 'bg-[#F59E0B]' : 'bg-[#10B981]'}`}
+                            className={`h-full transition-all ${memberSharePercent > 50 ? 'bg-[#EF4444]' : memberSharePercent > 25 ? 'bg-[#F59E0B]' : 'bg-[#EAB308]'}`}
                             style={{ width: `${memberSharePercent}%` }}
                           ></div>
                         </div>
@@ -465,7 +468,7 @@ export default function FamguardApp() {
 
       {/* Global Toast */}
       {toast.show && (
-        <div className={`fixed bottom-6 right-6 p-4 rounded-lg shadow-xl border flex items-center gap-3 animate-in slide-in-from-bottom-5 ${toast.type === 'error' ? 'bg-[#1E1E1E] border-[#EF4444] text-[#EF4444]' : 'bg-[#1E1E1E] border-[#10B981] text-[#10B981]'}`}>
+        <div className={`fixed bottom-6 right-6 p-4 rounded-lg shadow-xl border flex items-center gap-3 animate-in slide-in-from-bottom-5 ${toast.type === 'error' ? 'bg-[#1E1E1E] border-[#EF4444] text-[#EF4444]' : 'bg-[#1E1E1E] border-[#EAB308] text-[#EAB308]'}`}>
           {toast.type === 'error' ? <AlertTriangle size={20}/> : <CheckCircle size={20}/>}
           <span className="font-medium text-sm">{toast.message}</span>
         </div>
