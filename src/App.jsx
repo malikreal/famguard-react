@@ -314,12 +314,12 @@ export default function FamguardApp() {
 
         {/* METRIC CARDS */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div className="bg-[#1C1C1C] border border-[#2A2A2A] p-6 rounded-2xl shadow-sm">
-            <h3 className="text-[#A0A0A0] text-xs font-semibold mb-3 tracking-wider flex items-center gap-2 uppercase">
+          <div className="bg-[#1C1C1C] border border-[#EAB308]/20 p-6 rounded-2xl shadow-[0_0_20px_rgba(234,179,8,0.07)] transition-all hover:shadow-[0_0_25px_rgba(234,179,8,0.12)] relative">
+            <h3 className="text-[#A0A0A0] text-xs font-semibold mb-3 tracking-wider flex items-center gap-2 uppercase relative z-10">
               <Key size={14} /> Active Group ID
             </h3>
-            <h1 className="text-4xl font-bold text-[#EAB308] mb-4">{group.group_code}</h1>
-            <div className="flex gap-2">
+            <h1 className="text-4xl font-bold text-[#EAB308] mb-4 relative z-10">{group.group_code}</h1>
+            <div className="flex gap-2 relative z-10">
               <Button variant="outline" className="text-xs py-1.5 border-[#333]" onClick={() => { navigator.clipboard.writeText(group.group_code); showToast("Copied!"); }}>
                 <Copy size={14}/> Copy Code
               </Button>
@@ -329,8 +329,8 @@ export default function FamguardApp() {
             </div>
           </div>
 
-          <div className="bg-[#1C1C1C] border border-[#2A2A2A] p-6 rounded-2xl shadow-sm flex flex-col justify-between">
-            <div>
+          <div className="bg-[#1C1C1C] border border-[#EAB308]/20 p-6 rounded-2xl shadow-[0_0_20px_rgba(234,179,8,0.07)] transition-all hover:shadow-[0_0_25px_rgba(234,179,8,0.12)] flex flex-col justify-between relative">
+            <div className="relative z-10">
               <div className="flex justify-between items-start mb-2">
                 <h3 className="text-[#A0A0A0] text-xs font-semibold tracking-wider flex items-center gap-2 uppercase">
                   <PieChart size={14} /> Total Pool Usage
@@ -348,8 +348,14 @@ export default function FamguardApp() {
               </div>
             </div>
             
-            <div className="h-1.5 w-full bg-[#2A2A2A] rounded-full overflow-hidden">
-              <div className={`h-full transition-all duration-500 rounded-full ${poolPercent > 90 ? 'bg-[#EF4444]' : poolPercent > 70 ? 'bg-[#F59E0B]' : 'bg-[#EAB308]'}`} style={{ width: `${poolPercent}%` }}></div>
+            <div className="relative w-full h-1 bg-[#121212] rounded-full mt-2 z-10">
+              <div 
+                className={`absolute top-0 left-0 h-full rounded-full transition-all duration-500 ${poolPercent > 90 ? 'bg-[#EF4444]' : poolPercent > 70 ? 'bg-[#F59E0B]' : 'bg-[#EAB308]'}`} 
+                style={{ width: `${poolPercent}%` }}
+              >
+                {/* Glowing Dot at the end of the bar */}
+                <div className={`absolute -right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full ${poolPercent > 90 ? 'bg-[#EF4444] shadow-[0_0_8px_rgba(239,68,68,0.6)]' : poolPercent > 70 ? 'bg-[#F59E0B] shadow-[0_0_8px_rgba(245,158,11,0.6)]' : 'bg-[#EAB308] shadow-[0_0_8px_rgba(234,179,8,0.6)]'}`}></div>
+              </div>
             </div>
           </div>
         </div>
@@ -407,8 +413,14 @@ export default function FamguardApp() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="font-semibold text-xs mb-1.5">{(member.data_gb || 0).toFixed(2)} GB</div>
-                      <div className="h-1 w-full bg-[#2A2A2A] rounded-full overflow-hidden">
-                        <div className={`h-full transition-all ${((member.data_gb || 0) / safeQuota) * 100 > 50 ? 'bg-[#EF4444]' : 'bg-[#EAB308]'}`} style={{ width: `${Math.min(((member.data_gb || 0) / safeQuota) * 100, 100)}%` }}></div>
+                      <div className="relative w-full h-1 bg-[#121212] rounded-full">
+                        <div 
+                          className={`absolute top-0 left-0 h-full rounded-full transition-all duration-500 ${((member.data_gb || 0) / safeQuota) * 100 > 50 ? 'bg-[#EF4444]' : 'bg-[#EAB308]'}`} 
+                          style={{ width: `${Math.min(((member.data_gb || 0) / safeQuota) * 100, 100)}%` }}
+                        >
+                           {/* Mini Dot at the end of the member bar */}
+                           <div className={`absolute -right-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full ${((member.data_gb || 0) / safeQuota) * 100 > 50 ? 'bg-[#EF4444]' : 'bg-[#EAB308]'}`}></div>
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -453,7 +465,7 @@ export default function FamguardApp() {
               <>
                 <h3 className="text-lg font-bold mb-4">Manage {dialog.data.name}</h3>
                 <div className="flex flex-col gap-2">
-                  <Button variant={dialog.data.isPaused ? 'primary' : 'outline'} className={dialog.data.isPaused ? '' : 'border-[#F59E0B] text-[#F59E0B] hover:bg-[#F59E0B]/10'} onClick={() => { db.collection("groups").doc(group.group_code).collection("members").doc(dialog.data.uid).update({ isPaused: !dialog.data.isPaused }); closeDialog(); }}>
+                  <Button variant={dialog.data.isPaused ? 'primary' : 'outline'} className={dialog.data.isPaused ? '' : 'border-[#EF4444] text-[#EF4444] hover:bg-[#EF4444]/10'} onClick={() => { db.collection("groups").doc(group.group_code).collection("members").doc(dialog.data.uid).update({ isPaused: !dialog.data.isPaused }); closeDialog(); }}>
                     {dialog.data.isPaused ? 'Resume Access' : 'Pause Access'}
                   </Button>
                   <Button variant="danger" onClick={() => { db.collection("groups").doc(group.group_code).collection("members").doc(dialog.data.uid).delete(); closeDialog(); }}>Remove Member</Button>
