@@ -283,7 +283,7 @@ export default function FamguardApp() {
       <div className="w-full max-w-5xl">
         <header className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-3 text-2xl font-bold">
-            <img src="logo.jpg" alt="Famguard Logo" className="w-10 h-10" /> 
+            <img src="logo.jpg" alt="Famguard Logo" className="w-10 h-15" /> 
             Famguard
           </div>
           <div className="flex items-center gap-4">
