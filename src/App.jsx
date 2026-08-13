@@ -355,7 +355,7 @@ export default function FamguardApp() {
                       <div className="text-xs text-[#A0A0A0]">{member.device_model || "Unknown Device"}</div>
                     </td>
                     <td className="p-4">
-                      <span className={`px-2 py-1 text-xs font-bold uppercase rounded border ${member.isPaused ? 'text-[#F59E0B] border-[#F59E0B] bg-[#F59E0B]/10' : 'text-[#EAB308] border-[#EAB308] bg-[#EAB308]/10'}`}>
+                      <span className={`px-2 py-1 text-xs font-bold uppercase rounded border ${member.isPaused ? 'text-[#EF4444] border-[#EF4444] bg-[#EF4444]/10' : 'text-[#EAB308] border-[#EAB308] bg-[#EAB308]/10'}`}>
                         {member.isPaused ? 'Paused' : 'Active'}
                       </span>
                     </td>
