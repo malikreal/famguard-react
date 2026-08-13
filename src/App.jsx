@@ -6,7 +6,7 @@ import {
   Trash2, Pause, Play, MoreVertical, 
   Copy, Lock, Unlock, AlertTriangle, CheckCircle 
 } from 'lucide-react';
-
+import myLogo from './logo.png';
 // --- FIREBASE INITIALIZATION ---
 const firebaseConfig = {
   apiKey: "AIzaSyB5BlBrKRYm_T1ryg8l6zx4em9sqL117L8",
@@ -223,7 +223,7 @@ export default function FamguardApp() {
   if (isInitializing) {
     return (
       <div className="min-h-screen bg-[#121212] flex items-center justify-center">
-        <img src="/logo.jpg" alt="Famguard logo" className="w-16 h-16 animate-pulse drop-shadow-[0_0_15px_rgba(234,179,8,0.5)]" />
+        <img src={myLogo} alt="Famguard logo" className="w-16 h-16 animate-pulse drop-shadow-[0_0_15px_rgba(234,179,8,0.5)]" />
       </div>
     );
   }
@@ -234,7 +234,7 @@ export default function FamguardApp() {
         <div className="bg-[#1E1E1E] border border-[#333333] p-8 rounded-xl w-full max-w-md shadow-2xl relative group">
           <div className="absolute inset-0 bg-[#EAB308]/5 rounded-xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500"></div>
           <div className="relative z-10 text-center">
-            <img src="/logo.jpg" alt="Famguard logo" className="w-20 h-20 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(234,179,8,0.3)]" />
+            <img src={myLogo} alt="Famguard logo" className="w-20 h-20 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(234,179,8,0.3)]" />
             <h2 className="text-2xl font-bold mb-2">Famguard Admin</h2>
             <p className="text-[#A0A0A0] text-sm mb-6">Sign in or register to securely manage your pool.</p>
             <Input type="email" placeholder="Email Address" value={authForm.email} onChange={e => setAuthForm({...authForm, email: e.target.value})} />
@@ -257,7 +257,7 @@ export default function FamguardApp() {
       <div className="min-h-screen bg-[#121212] text-white p-6 flex flex-col items-center">
         <header className="w-full max-w-4xl flex justify-between items-center mb-12">
           <div className="flex items-center gap-3 text-xl font-bold">
-            <img src="/logo.jpg" alt="Famguard logo" className="w-8 h-8" /> 
+            <img src={myLogo} alt="Famguard logo" className="w-8 h-8" /> 
             Famguard
           </div>
           <div className="flex items-center gap-4">
@@ -283,7 +283,7 @@ export default function FamguardApp() {
       <div className="w-full max-w-5xl">
         <header className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-3 text-2xl font-bold">
-            <img src="/logo.jpg" alt="Famguard logo" className="w-10 h-15" /> 
+            <img src={myLogo} alt="Famguard logo" className="w-10 h-15" /> 
             Famguard
           </div>
           <div className="flex items-center gap-4">
