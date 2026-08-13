@@ -6,7 +6,7 @@ import {
   Trash2, Pause, Play, MoreVertical, 
   Copy, Lock, Unlock, AlertTriangle, CheckCircle
 } from 'lucide-react';
-import myLogo from './logo.jpg'; // Updated to reference logo.jpg
+import myLogo from './logo.png'; // Updated to reference logo.jpg
 
 // --- FIREBASE INITIALIZATION ---
 const firebaseConfig = {
