@@ -329,9 +329,9 @@ export default function FamguardApp() {
             </div>
           </div>
 
-          <div className="bg-[#1C1C1C] border border-[#EAB308]/20 p-6 rounded-2xl shadow-[0_0_20px_rgba(234,179,8,0.07)] transition-all hover:shadow-[0_0_25px_rgba(234,179,8,0.12)] flex flex-col justify-between relative">
-            <div className="relative z-10">
-              <div className="flex justify-between items-start mb-2">
+          <div className="bg-[#1C1C1C] border border-[#EAB308]/20 p-6 rounded-2xl shadow-[0_0_20px_rgba(234,179,8,0.07)] transition-all hover:shadow-[0_0_25px_rgba(234,179,8,0.12)] flex flex-col justify-center relative">
+            <div className="relative z-10 w-full">
+              <div className="flex justify-between items-start mb-4">
                 <h3 className="text-[#A0A0A0] text-xs font-semibold tracking-wider flex items-center gap-2 uppercase">
                   <PieChart size={14} /> Total Pool Usage
                 </h3>
@@ -340,21 +340,20 @@ export default function FamguardApp() {
                   <span className="text-[#A0A0A0] text-sm font-normal"> / {group.quota_gb.toFixed(2)} GB</span>
                 </div>
               </div>
-              <div className="flex justify-between items-center mb-4">
+              
+              {/* THICK CENTERED PROGRESS BAR */}
+              <div className="relative w-full h-4 bg-[#121212] rounded-full my-2 overflow-hidden shadow-inner border border-[#333]">
+                <div 
+                  className={`absolute top-0 left-0 h-full transition-all duration-500 ${poolPercent > 90 ? 'bg-[#EF4444]' : poolPercent > 70 ? 'bg-[#F59E0B]' : 'bg-[#EAB308]'}`} 
+                  style={{ width: `${poolPercent}%` }}
+                ></div>
+              </div>
+
+              <div className="flex justify-between items-center mt-4">
                 <button className="text-[#EAB308] text-xs flex items-center gap-1 hover:opacity-80 transition-opacity" onClick={() => { setDialogInput(group.quota_gb); setDialog({ show: true, type: 'editQuota' }); }}>
                   <Edit2 size={12}/> Edit Quota
                 </button>
-                <div className="text-[#A0A0A0] text-xs">{poolPercent.toFixed(1)}% Used</div>
-              </div>
-            </div>
-            
-            <div className="relative w-full h-1 bg-[#121212] rounded-full mt-2 z-10">
-              <div 
-                className={`absolute top-0 left-0 h-full rounded-full transition-all duration-500 ${poolPercent > 90 ? 'bg-[#EF4444]' : poolPercent > 70 ? 'bg-[#F59E0B]' : 'bg-[#EAB308]'}`} 
-                style={{ width: `${poolPercent}%` }}
-              >
-                {/* Glowing Dot at the end of the bar */}
-                <div className={`absolute -right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full ${poolPercent > 90 ? 'bg-[#EF4444] shadow-[0_0_8px_rgba(239,68,68,0.6)]' : poolPercent > 70 ? 'bg-[#F59E0B] shadow-[0_0_8px_rgba(245,158,11,0.6)]' : 'bg-[#EAB308] shadow-[0_0_8px_rgba(234,179,8,0.6)]'}`}></div>
+                <div className="text-[#A0A0A0] text-xs font-semibold">{poolPercent.toFixed(1)}% Used</div>
               </div>
             </div>
           </div>
@@ -411,17 +410,9 @@ export default function FamguardApp() {
                       <div className="text-xs text-[#A0A0A0]">{formatDate(member.last_updated)}</div>
                       <div className="text-[10px] text-[#777] mt-0.5">{timeAgo(member.last_updated)}</div>
                     </td>
+                    {/* REMOVED PROGRESS BAR, JUST SHOWING TEXT NOW */}
                     <td className="px-6 py-4">
-                      <div className="font-semibold text-xs mb-1.5">{(member.data_gb || 0).toFixed(2)} GB</div>
-                      <div className="relative w-full h-1 bg-[#121212] rounded-full">
-                        <div 
-                          className={`absolute top-0 left-0 h-full rounded-full transition-all duration-500 ${((member.data_gb || 0) / safeQuota) * 100 > 50 ? 'bg-[#EF4444]' : 'bg-[#EAB308]'}`} 
-                          style={{ width: `${Math.min(((member.data_gb || 0) / safeQuota) * 100, 100)}%` }}
-                        >
-                           {/* Mini Dot at the end of the member bar */}
-                           <div className={`absolute -right-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full ${((member.data_gb || 0) / safeQuota) * 100 > 50 ? 'bg-[#EF4444]' : 'bg-[#EAB308]'}`}></div>
-                        </div>
-                      </div>
+                      <div className="font-semibold text-sm">{(member.data_gb || 0).toFixed(2)} GB</div>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button onClick={() => setDialog({ show: true, type: 'memberMenu', data: member })} className="p-1 text-[#A0A0A0] hover:text-white transition-colors"><MoreVertical size={16} /></button>
