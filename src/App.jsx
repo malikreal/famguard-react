@@ -4,9 +4,9 @@ import 'firebase/compat/auth';
 import 'firebase/compat/firestore';
 import { 
   Trash2, Pause, Play, MoreVertical, 
-  Copy, Lock, Unlock, AlertTriangle, CheckCircle, myLogo
+  Copy, Lock, Unlock, AlertTriangle, CheckCircle
 } from 'lucide-react';
-import myLogo from './logo.png'; // Uncomment if using local logo
+import myLogo from './logo.jpg'; // Updated to reference logo.jpg
 
 // --- FIREBASE INITIALIZATION ---
 const firebaseConfig = {
@@ -27,14 +27,14 @@ const auth = firebase.auth();
 
 // --- REUSABLE COMPONENTS ---
 const Input = (props) => (
-  <input {...props} className="w-full p-3 mb-4 bg-[#121212] border border-[#333333] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3B82F6] transition-all" />
+  <input {...props} className="w-full p-3 mb-4 bg-[#121212] border border-[#333333] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#EAB308] transition-all" />
 );
 
 const Button = ({ children, variant = 'primary', className = '', ...props }) => {
   const base = "px-4 py-2 rounded-md font-bold transition-opacity disabled:opacity-50 flex items-center justify-center gap-2";
   const variants = {
-    primary: "bg-[#3B82F6] text-white hover:opacity-90",
-    secondary: "bg-[#10B981] text-white hover:opacity-90",
+    primary: "bg-[#EAB308] text-[#121212] hover:opacity-90", // Gold with dark text
+    secondary: "bg-[#D97706] text-white hover:opacity-90", // Richer gold/bronze
     danger: "bg-[#EF4444] text-white hover:opacity-80",
     warning: "bg-[#F59E0B] text-white hover:opacity-80",
     outline: "bg-transparent border border-[#333333] text-white hover:bg-[#262626]"
@@ -88,7 +88,6 @@ export default function FamguardApp() {
           const doc = snapshot.docs[0];
           setGroup({ group_code: doc.id, ...doc.data() });
           
-          // Only pull the admin note on first load to prevent erasing active typing
           if (isFirstGroupLoad.current) {
             setAdminNote(doc.data().admin_note || "");
             isFirstGroupLoad.current = false;
@@ -150,7 +149,6 @@ export default function FamguardApp() {
       let isUnique = false;
       let groupRef;
 
-      // Bug Fix: Loop until we find a unique group code
       while (!isUnique) {
         code = "FAM-" + Math.floor(1000 + Math.random() * 9000);
         groupRef = db.collection("groups").doc(code);
@@ -184,22 +182,18 @@ export default function FamguardApp() {
     try {
       if (!passwordConfirm) return showToast("Password required to delete account.", "error");
 
-      // Bug Fix: Re-authenticate first to prevent "requires-recent-login" failures midway
       const credential = firebase.auth.EmailAuthProvider.credential(user.email, passwordConfirm);
       await user.reauthenticateWithCredential(credential);
 
-      // 1. Delete all members in subcollection
       if (group?.group_code) {
         const snapshot = await db.collection("groups").doc(group.group_code).collection("members").get();
         const batch = db.batch();
         snapshot.forEach(doc => batch.delete(doc.ref));
         await batch.commit();
         
-        // 2. Delete main group doc
         await db.collection("groups").doc(group.group_code).delete();
       }
       
-      // 3. Delete auth account
       await user.delete();
       closeDialog();
     } catch (error) {
@@ -218,14 +212,17 @@ export default function FamguardApp() {
   if (!user) {
     return (
       <div className="min-h-screen bg-[#121212] flex items-center justify-center p-4">
-        <div className="bg-[#1E1E1E] p-8 rounded-xl w-full max-w-md border border-[#333333] text-center">
-          <myLogo size={48} className="mx-auto mb-4 text-[#3B82F6]" />
-          <h2 className="text-2xl font-bold text-white mb-2">Famguard Admin</h2>
-          <p className="text-[#A0A0A0] mb-6">Sign in to manage your pool.</p>
-          <Input type="email" placeholder="Email Address" value={authForm.email} onChange={e => setAuthForm({...authForm, email: e.target.value})} />
-          <Input type="password" placeholder="Password" value={authForm.password} onChange={e => setAuthForm({...authForm, password: e.target.value})} />
-          <Button className="w-full mb-3" onClick={() => handleAuth('signin')}>Sign In</Button>
-          <Button variant="outline" className="w-full" onClick={() => handleAuth('signup')}>Create Account</Button>
+        <div className="bg-[#1E1E1E] p-8 rounded-xl w-full max-w-md border border-[#333333] text-center shadow-2xl relative group">
+          <div className="absolute inset-0 bg-[#EAB308]/5 rounded-xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500"></div>
+          <div className="relative z-10">
+            <img src={myLogo} alt="Famguard Logo" className="w-20 h-20 mx-auto mb-4 object-contain drop-shadow-[0_0_15px_rgba(234,179,8,0.3)]" />
+            <h2 className="text-2xl font-bold text-white mb-2">Famguard Admin</h2>
+            <p className="text-[#A0A0A0] mb-6">Sign in to securely manage your pool.</p>
+            <Input type="email" placeholder="Email Address" value={authForm.email} onChange={e => setAuthForm({...authForm, email: e.target.value})} />
+            <Input type="password" placeholder="Password" value={authForm.password} onChange={e => setAuthForm({...authForm, password: e.target.value})} />
+            <Button className="w-full mb-3" onClick={() => handleAuth('signin')}>Sign In</Button>
+            <Button variant="outline" className="w-full" onClick={() => handleAuth('signup')}>Create Account</Button>
+          </div>
         </div>
       </div>
     );
@@ -234,7 +231,16 @@ export default function FamguardApp() {
   if (!group) {
     return (
       <div className="min-h-screen bg-[#121212] p-6 text-white flex flex-col items-center">
-        <div className="bg-[#1E1E1E] p-8 rounded-xl w-full max-w-md border border-[#333333] text-center mt-20">
+        <header className="w-full max-w-4xl flex justify-between items-center mb-12">
+          <div className="flex items-center gap-3 text-xl font-bold">
+            <img src={myLogo} alt="Famguard Logo" className="w-8 h-8 object-contain" /> Famguard
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-[#A0A0A0] text-sm">{user.email}</span>
+            <Button variant="outline" onClick={() => auth.signOut()}>Sign Out</Button>
+          </div>
+        </header>
+        <div className="bg-[#1E1E1E] p-8 rounded-xl w-full max-w-md border border-[#333333] text-center shadow-lg">
           <h3 className="text-xl font-bold mb-2">Create a Data Pool</h3>
           <p className="text-[#A0A0A0] mb-6">Set your family's monthly data limit.</p>
           <Input type="number" placeholder="Total Pool Quota (GB)" value={newQuota} onChange={e => setNewQuota(e.target.value)} />
@@ -249,34 +255,34 @@ export default function FamguardApp() {
       <div className="w-full max-w-5xl">
         <header className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-3 text-2xl font-bold">
-            <myLogo className="text-[#3B82F6]" /> Famguard
+            <img src={myLogo} alt="Famguard Logo" className="w-10 h-10 object-contain drop-shadow-[0_0_10px_rgba(234,179,8,0.2)]" /> Famguard
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-[#A0A0A0] text-sm">{user.email}</span>
+            <span className="text-[#A0A0A0] text-sm hidden md:block">{user.email}</span>
             <Button variant="outline" onClick={() => auth.signOut()}>Sign Out</Button>
           </div>
         </header>
 
         {/* Dash Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div className="bg-[#1E1E1E] border border-[#333333] p-6 rounded-xl flex justify-between items-center">
+          <div className="bg-[#1E1E1E] border border-[#333333] p-6 rounded-xl flex justify-between items-center shadow-md">
             <div>
               <h3 className="text-[#A0A0A0] font-semibold mb-1">Active Group ID</h3>
-              <h1 className="text-3xl font-bold text-[#10B981]">{group.group_code}</h1>
+              <h1 className="text-3xl font-bold text-[#EAB308]">{group.group_code}</h1>
             </div>
             <div className="flex flex-col gap-2">
               <Button variant="outline" className="text-sm py-1" onClick={() => { navigator.clipboard.writeText(group.group_code); showToast("Copied!"); }}><Copy size={16}/> Copy</Button>
-              <Button variant={group.locked ? 'danger' : 'secondary'} className="text-sm py-1" onClick={() => db.collection("groups").doc(group.group_code).update({ locked: !group.locked })}>
+              <Button variant={group.locked ? 'danger' : 'primary'} className="text-sm py-1" onClick={() => db.collection("groups").doc(group.group_code).update({ locked: !group.locked })}>
                 {group.locked ? <><Lock size={16}/> Locked</> : <><Unlock size={16}/> Open</>}
               </Button>
             </div>
           </div>
 
-          <div className="bg-[#1E1E1E] border border-[#333333] p-6 rounded-xl">
+          <div className="bg-[#1E1E1E] border border-[#333333] p-6 rounded-xl shadow-md">
             <div className="flex justify-between items-end mb-4">
               <div>
                 <h3 className="text-[#A0A0A0] font-semibold mb-1">Total Pool Usage</h3>
-                <button className="text-[#3B82F6] text-sm hover:underline" onClick={() => { setDialogInput(group.quota_gb); setDialog({ show: true, type: 'editQuota' }); }}>Edit Quota</button>
+                <button className="text-[#EAB308] text-sm hover:underline" onClick={() => { setDialogInput(group.quota_gb); setDialog({ show: true, type: 'editQuota' }); }}>Edit Quota</button>
               </div>
               <div className="text-right">
                 <span className="text-xl font-bold">{totalConsumed.toFixed(2)} GB / {group.quota_gb.toFixed(2)} GB</span>
@@ -284,59 +290,67 @@ export default function FamguardApp() {
               </div>
             </div>
             <div className="h-3 w-full bg-[#121212] rounded-full overflow-hidden border border-[#333333]">
-              <div className={`h-full transition-all ${poolPercent > 90 ? 'bg-[#EF4444]' : poolPercent > 70 ? 'bg-[#F59E0B]' : 'bg-[#10B981]'}`} style={{ width: `${poolPercent}%` }}></div>
+              <div className={`h-full transition-all duration-500 ${poolPercent > 90 ? 'bg-[#EF4444] animate-pulse' : poolPercent > 70 ? 'bg-[#F59E0B]' : 'bg-[#EAB308]'}`} style={{ width: `${poolPercent}%` }}></div>
             </div>
           </div>
         </div>
 
         {/* Note */}
-        <div className="bg-[#1E1E1E] border border-[#333333] p-6 rounded-xl mb-6">
+        <div className="bg-[#1E1E1E] border border-[#333333] p-6 rounded-xl mb-6 shadow-md">
           <h3 className="font-semibold mb-4">Admin Note to Members</h3>
-          <textarea className="w-full p-3 bg-[#121212] border border-[#333333] rounded-lg text-white mb-3 focus:outline-none focus:border-[#3B82F6]" rows="2" value={adminNote} onChange={e => setAdminNote(e.target.value)}></textarea>
+          <textarea className="w-full p-3 bg-[#121212] border border-[#333333] rounded-lg text-white mb-3 focus:outline-none focus:border-[#EAB308] transition-all" rows="2" value={adminNote} onChange={e => setAdminNote(e.target.value)}></textarea>
           <Button onClick={() => { db.collection("groups").doc(group.group_code).update({ admin_note: adminNote }); showToast("Note broadcasted!"); }}>Save & Broadcast</Button>
         </div>
 
         {/* Members Table */}
-        <div className="bg-[#1E1E1E] border border-[#333333] rounded-xl mb-6 overflow-hidden">
+        <div className="bg-[#1E1E1E] border border-[#333333] rounded-xl mb-6 overflow-hidden shadow-md">
           <div className="p-6 border-b border-[#333333]">
             <h3 className="font-semibold">{members.length} Members Connected</h3>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-[#262626] text-[#A0A0A0] text-xs uppercase">
-                  <th className="p-4">Member</th>
-                  <th className="p-4">Status</th>
-                  <th className="p-4">Data Used</th>
-                  <th className="p-4 text-right">Actions</th>
+                <tr className="bg-[#262626] text-[#A0A0A0] text-xs uppercase tracking-wider">
+                  <th className="p-4 font-medium">Member</th>
+                  <th className="p-4 font-medium">Status</th>
+                  <th className="p-4 font-medium w-1/4">Data Used</th>
+                  <th className="p-4 font-medium text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#333333]">
                 {members.map(member => (
-                  <tr key={member.uid} className="hover:bg-[#262626]">
+                  <tr key={member.uid} className="hover:bg-[#262626] transition-colors">
                     <td className="p-4">
                       <div className="font-bold">{member.name || "Unknown"}</div>
-                      <div className="text-xs text-[#A0A0A0]">{member.device_model}</div>
+                      <div className="text-xs text-[#A0A0A0]">{member.device_model || "Unknown Device"}</div>
                     </td>
                     <td className="p-4">
-                      <span className={`px-2 py-1 text-xs font-bold uppercase rounded border ${member.isPaused ? 'text-[#F59E0B] border-[#F59E0B] bg-[#F59E0B]/10' : 'text-[#10B981] border-[#10B981] bg-[#10B981]/10'}`}>
+                      <span className={`px-2 py-1 text-xs font-bold uppercase rounded border ${member.isPaused ? 'text-[#F59E0B] border-[#F59E0B] bg-[#F59E0B]/10' : 'text-[#EAB308] border-[#EAB308] bg-[#EAB308]/10'}`}>
                         {member.isPaused ? 'Paused' : 'Active'}
                       </span>
                     </td>
-                    <td className="p-4 font-bold">{(member.data_gb || 0).toFixed(2)} GB</td>
+                    <td className="p-4">
+                      <div className="font-bold text-sm mb-1">{(member.data_gb || 0).toFixed(2)} GB</div>
+                      <div className="h-1.5 w-full bg-[#121212] rounded-full overflow-hidden">
+                        <div className={`h-full transition-all ${((member.data_gb || 0) / safeQuota) * 100 > 50 ? 'bg-[#EF4444]' : ((member.data_gb || 0) / safeQuota) * 100 > 25 ? 'bg-[#F59E0B]' : 'bg-[#EAB308]'}`} style={{ width: `${Math.min(((member.data_gb || 0) / safeQuota) * 100, 100)}%` }}></div>
+                      </div>
+                    </td>
                     <td className="p-4 text-right">
-                      <button onClick={() => setDialog({ show: true, type: 'memberMenu', data: member })} className="p-2 hover:text-[#3B82F6]"><MoreVertical size={20} /></button>
+                      <button onClick={() => setDialog({ show: true, type: 'memberMenu', data: member })} className="p-2 text-[#A0A0A0] hover:text-[#EAB308] transition-colors"><MoreVertical size={20} /></button>
                     </td>
                   </tr>
                 ))}
+                {members.length === 0 && (
+                  <tr><td colSpan="4" className="p-8 text-center text-[#A0A0A0]">No members connected yet.</td></tr>
+                )}
               </tbody>
             </table>
           </div>
         </div>
 
         {/* Danger Zone */}
-        <div className="bg-red-500/5 border border-[#EF4444] p-6 rounded-xl flex justify-between items-center">
-          <div>
+        <div className="bg-red-500/5 border border-[#EF4444] p-6 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center shadow-md">
+          <div className="mb-4 sm:mb-0">
             <h3 className="text-[#EF4444] font-bold mb-1 flex items-center gap-2"><AlertTriangle size={20}/> Danger Zone</h3>
             <div className="text-[#A0A0A0] text-sm">Permanently delete account and data.</div>
           </div>
@@ -347,7 +361,7 @@ export default function FamguardApp() {
       {/* DIALOGS */}
       {dialog.show && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1E1E1E] border border-[#333333] p-6 rounded-xl w-full max-w-sm">
+          <div className="bg-[#1E1E1E] border border-[#333333] p-6 rounded-xl w-full max-w-sm shadow-2xl">
             {dialog.type === 'editQuota' && (
               <>
                 <h3 className="text-lg font-bold mb-4">Edit Pool Quota</h3>
@@ -360,7 +374,7 @@ export default function FamguardApp() {
               <>
                 <h3 className="text-lg font-bold mb-4">Manage {dialog.data.name}</h3>
                 <div className="flex flex-col gap-2">
-                  <Button variant={dialog.data.isPaused ? 'secondary' : 'warning'} onClick={() => { db.collection("groups").doc(group.group_code).collection("members").doc(dialog.data.uid).update({ isPaused: !dialog.data.isPaused }); closeDialog(); }}>
+                  <Button variant={dialog.data.isPaused ? 'primary' : 'warning'} onClick={() => { db.collection("groups").doc(group.group_code).collection("members").doc(dialog.data.uid).update({ isPaused: !dialog.data.isPaused }); closeDialog(); }}>
                     {dialog.data.isPaused ? 'Resume Access' : 'Pause Access'}
                   </Button>
                   <Button variant="danger" onClick={() => { db.collection("groups").doc(group.group_code).collection("members").doc(dialog.data.uid).delete(); closeDialog(); }}>Remove Member</Button>
@@ -383,7 +397,7 @@ export default function FamguardApp() {
 
       {/* TOAST */}
       {toast.show && (
-        <div className={`fixed bottom-6 right-6 p-4 rounded-lg shadow-xl border flex items-center gap-3 ${toast.type === 'error' ? 'bg-[#1E1E1E] border-[#EF4444] text-[#EF4444]' : 'bg-[#1E1E1E] border-[#10B981] text-[#10B981]'}`}>
+        <div className={`fixed bottom-6 right-6 p-4 rounded-lg shadow-xl border flex items-center gap-3 animate-in slide-in-from-bottom-5 ${toast.type === 'error' ? 'bg-[#1E1E1E] border-[#EF4444] text-[#EF4444]' : 'bg-[#1E1E1E] border-[#EAB308] text-[#EAB308]'}`}>
           {toast.type === 'error' ? <AlertTriangle size={20}/> : <CheckCircle size={20}/>}
           <span className="font-medium text-sm">{toast.message}</span>
         </div>
