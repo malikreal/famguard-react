@@ -4,7 +4,7 @@ import 'firebase/compat/auth';
 import 'firebase/compat/firestore';
 import { 
   Trash2, Pause, Play, MoreVertical, 
-  Copy, Lock, Unlock, AlertTriangle, CheckCircle, Shield
+  Copy, Lock, Unlock, AlertTriangle, CheckCircle, myLogo
 } from 'lucide-react';
 import myLogo from './logo.png'; // Uncomment if using local logo
 
@@ -219,7 +219,7 @@ export default function FamguardApp() {
     return (
       <div className="min-h-screen bg-[#121212] flex items-center justify-center p-4">
         <div className="bg-[#1E1E1E] p-8 rounded-xl w-full max-w-md border border-[#333333] text-center">
-          <Shield size={48} className="mx-auto mb-4 text-[#3B82F6]" />
+          <myLogo size={48} className="mx-auto mb-4 text-[#3B82F6]" />
           <h2 className="text-2xl font-bold text-white mb-2">Famguard Admin</h2>
           <p className="text-[#A0A0A0] mb-6">Sign in to manage your pool.</p>
           <Input type="email" placeholder="Email Address" value={authForm.email} onChange={e => setAuthForm({...authForm, email: e.target.value})} />
@@ -249,7 +249,7 @@ export default function FamguardApp() {
       <div className="w-full max-w-5xl">
         <header className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-3 text-2xl font-bold">
-            <Shield className="text-[#3B82F6]" /> Famguard
+            <myLogo className="text-[#3B82F6]" /> Famguard
           </div>
           <div className="flex items-center gap-4">
             <span className="text-[#A0A0A0] text-sm">{user.email}</span>
