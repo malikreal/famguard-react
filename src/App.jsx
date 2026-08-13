@@ -249,16 +249,24 @@ export default function FamguardApp() {
   if (!user) {
     return (
       <div className="min-h-screen bg-[#121212] flex items-center justify-center p-4">
-        <div className="bg-[#1C1C1C] p-8 rounded-2xl w-full max-w-md border border-[#333] text-center shadow-2xl relative group">
+        <div className="bg-[#1C1C1C] p-8 rounded-2xl w-full max-w-md border border-[#333] text-center shadow-2xl relative overflow-hidden group">
+          {/* Subtle gold overlay behind the login form */}
+          <div className="absolute inset-0 bg-[#EAB308]/5 pointer-events-none"></div>
           <div className="absolute inset-0 bg-[#EAB308]/5 rounded-2xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500"></div>
           <div className="relative z-10">
             <img src={myLogo} alt="Famguard Logo" className="w-20 h-20 mx-auto mb-4 object-contain drop-shadow-[0_0_15px_rgba(234,179,8,0.2)]" />
             <h2 className="text-2xl font-bold text-white mb-1">Famguard</h2>
             <p className="text-[#A0A0A0] text-sm mb-6">Admin Portal</p>
-            <Input type="email" placeholder="Email Address" value={authForm.email} onChange={e => setAuthForm({...authForm, email: e.target.value})} />
-            <Input type="password" placeholder="Password" value={authForm.password} onChange={e => setAuthForm({...authForm, password: e.target.value})} />
-            <Button className="w-full mb-3" onClick={() => handleAuth('signin')}>Sign In</Button>
-            <Button variant="outline" className="w-full" onClick={() => handleAuth('signup')}>Create Account</Button>
+            
+            <form onSubmit={(e) => { 
+              e.preventDefault(); 
+              handleAuth('signin'); 
+            }}>
+              <Input type="email" placeholder="Email Address" value={authForm.email} onChange={e => setAuthForm({...authForm, email: e.target.value})} />
+              <Input type="password" placeholder="Password" value={authForm.password} onChange={e => setAuthForm({...authForm, password: e.target.value})} />
+              <Button type="submit" className="w-full mb-3">Sign In</Button>
+              <Button type="button" variant="outline" className="w-full" onClick={() => handleAuth('signup')}>Create Account</Button>
+            </form>
           </div>
         </div>
       </div>
@@ -281,11 +289,14 @@ export default function FamguardApp() {
             <Button variant="outline" onClick={() => auth.signOut()}><LogOut size={16}/> Sign Out</Button>
           </div>
         </header>
-        <div className="bg-[#1C1C1C] p-8 rounded-2xl w-full max-w-md border border-[#333] text-center shadow-lg mt-10">
-          <h3 className="text-xl font-bold mb-2">Create a Data Pool</h3>
-          <p className="text-[#A0A0A0] text-sm mb-6">Set your family's monthly data limit.</p>
-          <Input type="number" placeholder="Total Pool Quota (GB)" value={newQuota} onChange={e => setNewQuota(e.target.value)} />
-          <Button className="w-full" onClick={createGroup}>Create Group</Button>
+        <div className="bg-[#1C1C1C] p-8 rounded-2xl w-full max-w-md border border-[#EAB308]/20 text-center shadow-lg mt-10 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[#EAB308]/5 pointer-events-none"></div>
+          <div className="relative z-10">
+            <h3 className="text-xl font-bold mb-2">Create a Data Pool</h3>
+            <p className="text-[#A0A0A0] text-sm mb-6">Set your family's monthly data limit.</p>
+            <Input type="number" placeholder="Total Pool Quota (GB)" value={newQuota} onChange={e => setNewQuota(e.target.value)} />
+            <Button className="w-full" onClick={createGroup}>Create Group</Button>
+          </div>
         </div>
       </div>
     );
@@ -314,22 +325,28 @@ export default function FamguardApp() {
 
         {/* METRIC CARDS */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div className="bg-[#1C1C1C] border border-[#EAB308]/20 p-6 rounded-2xl shadow-[0_0_20px_rgba(234,179,8,0.07)] transition-all hover:shadow-[0_0_25px_rgba(234,179,8,0.12)] relative">
-            <h3 className="text-[#A0A0A0] text-xs font-semibold mb-3 tracking-wider flex items-center gap-2 uppercase relative z-10">
-              <Key size={14} /> Active Group ID
-            </h3>
-            <h1 className="text-4xl font-bold text-[#EAB308] mb-4 relative z-10">{group.group_code}</h1>
-            <div className="flex gap-2 relative z-10">
-              <Button variant="outline" className="text-xs py-1.5 border-[#333]" onClick={() => { navigator.clipboard.writeText(group.group_code); showToast("Copied!"); }}>
-                <Copy size={14}/> Copy Code
-              </Button>
-              <Button variant={group.locked ? 'danger' : 'primary'} className="text-xs py-1.5" onClick={() => db.collection("groups").doc(group.group_code).update({ locked: !group.locked })}>
-                {group.locked ? <><Lock size={14}/> Locked</> : <><Unlock size={14}/> Accepting Members</>}
-              </Button>
+          <div className="bg-[#1C1C1C] border border-[#EAB308]/20 p-6 rounded-2xl shadow-[0_0_20px_rgba(234,179,8,0.07)] transition-all hover:shadow-[0_0_25px_rgba(234,179,8,0.12)] relative overflow-hidden">
+            {/* The subtle gold overlay */}
+            <div className="absolute inset-0 bg-[#EAB308]/5 pointer-events-none"></div>
+            <div className="relative z-10">
+              <h3 className="text-[#A0A0A0] text-xs font-semibold mb-3 tracking-wider flex items-center gap-2 uppercase">
+                <Key size={14} /> Active Group ID
+              </h3>
+              <h1 className="text-4xl font-bold text-[#EAB308] mb-4">{group.group_code}</h1>
+              <div className="flex gap-2">
+                <Button variant="outline" className="text-xs py-1.5 border-[#333]" onClick={() => { navigator.clipboard.writeText(group.group_code); showToast("Copied!"); }}>
+                  <Copy size={14}/> Copy Code
+                </Button>
+                <Button variant={group.locked ? 'danger' : 'primary'} className="text-xs py-1.5" onClick={() => db.collection("groups").doc(group.group_code).update({ locked: !group.locked })}>
+                  {group.locked ? <><Lock size={14}/> Locked</> : <><Unlock size={14}/> Accepting Members</>}
+                </Button>
+              </div>
             </div>
           </div>
 
-          <div className="bg-[#1C1C1C] border border-[#EAB308]/20 p-6 rounded-2xl shadow-[0_0_20px_rgba(234,179,8,0.07)] transition-all hover:shadow-[0_0_25px_rgba(234,179,8,0.12)] flex flex-col justify-center relative">
+          <div className="bg-[#1C1C1C] border border-[#EAB308]/20 p-6 rounded-2xl shadow-[0_0_20px_rgba(234,179,8,0.07)] transition-all hover:shadow-[0_0_25px_rgba(234,179,8,0.12)] flex flex-col justify-center relative overflow-hidden">
+             {/* The subtle gold overlay */}
+            <div className="absolute inset-0 bg-[#EAB308]/5 pointer-events-none"></div>
             <div className="relative z-10 w-full">
               <div className="flex justify-between items-start mb-4">
                 <h3 className="text-[#A0A0A0] text-xs font-semibold tracking-wider flex items-center gap-2 uppercase">
@@ -360,70 +377,77 @@ export default function FamguardApp() {
         </div>
 
         {/* ADMIN NOTE */}
-        <div className="bg-[#1C1C1C] border border-[#2A2A2A] p-6 rounded-2xl mb-4 shadow-sm">
-          <h3 className="text-[#A0A0A0] text-xs font-semibold mb-4 tracking-wider flex items-center gap-2 uppercase">
-            <Megaphone size={14} /> Admin Note to Members
-          </h3>
-          <textarea className="w-full p-3 bg-[#121212] border border-[#2A2A2A] rounded-lg text-sm text-white mb-3 focus:outline-none focus:border-[#EAB308] transition-all resize-none" rows="2" value={adminNote} onChange={e => setAdminNote(e.target.value)}></textarea>
-          <Button className="text-xs py-1.5 px-4" onClick={() => { db.collection("groups").doc(group.group_code).update({ admin_note: adminNote }); showToast("Note broadcasted!"); }}>
-            Save & Broadcast
-          </Button>
+        <div className="bg-[#1C1C1C] border border-[#EAB308]/10 p-6 rounded-2xl mb-4 shadow-sm relative overflow-hidden">
+           {/* The subtle gold overlay */}
+          <div className="absolute inset-0 bg-[#EAB308]/5 pointer-events-none"></div>
+          <div className="relative z-10 w-full">
+            <h3 className="text-[#A0A0A0] text-xs font-semibold mb-4 tracking-wider flex items-center gap-2 uppercase">
+              <Megaphone size={14} /> Admin Note to Members
+            </h3>
+            <textarea className="w-full p-3 bg-[#121212] border border-[#2A2A2A] rounded-lg text-sm text-white mb-3 focus:outline-none focus:border-[#EAB308] transition-all resize-none relative z-10" rows="2" value={adminNote} onChange={e => setAdminNote(e.target.value)}></textarea>
+            <Button className="text-xs py-1.5 px-4" onClick={() => { db.collection("groups").doc(group.group_code).update({ admin_note: adminNote }); showToast("Note broadcasted!"); }}>
+              Save & Broadcast
+            </Button>
+          </div>
         </div>
 
         {/* MEMBERS TABLE */}
-        <div className="bg-[#1C1C1C] border border-[#2A2A2A] rounded-2xl mb-6 overflow-hidden shadow-sm">
-          <div className="p-6 border-b border-[#2A2A2A]">
-            <h3 className="text-white text-sm font-semibold flex items-center gap-2">
-              <Users size={16} className="text-[#EAB308]" /> {members.length} Members Connected
-            </h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-[#2A2A2A]">
-                  <th className="px-6 py-4 text-[#A0A0A0] text-xs font-semibold uppercase tracking-wider">Member</th>
-                  <th className="px-6 py-4 text-[#A0A0A0] text-xs font-semibold uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-4 text-[#A0A0A0] text-xs font-semibold uppercase tracking-wider">First Connected</th>
-                  <th className="px-6 py-4 text-[#A0A0A0] text-xs font-semibold uppercase tracking-wider">Last Sync</th>
-                  <th className="px-6 py-4 text-[#A0A0A0] text-xs font-semibold uppercase tracking-wider w-1/4">Data Used</th>
-                  <th className="px-6 py-4 text-[#A0A0A0] text-xs font-semibold uppercase tracking-wider text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#2A2A2A]">
-                {members.map(member => (
-                  <tr key={member.uid} className="hover:bg-[#222] transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="font-semibold text-sm">{member.name || "Unknown"}</div>
-                      <div className="text-xs text-[#A0A0A0] flex items-center gap-1 mt-1">
-                        <Smartphone size={12} /> {member.device_model || "Unknown Device"}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase rounded-full border ${member.isPaused ? 'text-[#EF4444] border-[#EF4444] bg-[#EF4444]/10' : 'text-[#EAB308] border-[#EAB308] bg-[#EAB308]/10'}`}>
-                        {member.isPaused ? 'Paused' : 'Active'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-xs text-[#A0A0A0] whitespace-nowrap">
-                      {formatDate(member.joined_at)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-xs text-[#A0A0A0]">{formatDate(member.last_updated)}</div>
-                      <div className="text-[10px] text-[#777] mt-0.5">{timeAgo(member.last_updated)}</div>
-                    </td>
-                    {/* REMOVED PROGRESS BAR, JUST SHOWING TEXT NOW */}
-                    <td className="px-6 py-4">
-                      <div className="font-semibold text-sm">{(member.data_gb || 0).toFixed(2)} GB</div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button onClick={() => setDialog({ show: true, type: 'memberMenu', data: member })} className="p-1 text-[#A0A0A0] hover:text-white transition-colors"><MoreVertical size={16} /></button>
-                    </td>
+        <div className="bg-[#1C1C1C] border border-[#EAB308]/10 rounded-2xl mb-6 shadow-sm relative overflow-hidden">
+          {/* The subtle gold overlay */}
+          <div className="absolute inset-0 bg-[#EAB308]/5 pointer-events-none"></div>
+          <div className="relative z-10 w-full">
+            <div className="p-6 border-b border-[#EAB308]/10">
+              <h3 className="text-white text-sm font-semibold flex items-center gap-2">
+                <Users size={16} className="text-[#EAB308]" /> {members.length} Members Connected
+              </h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-[#EAB308]/10">
+                    <th className="px-6 py-4 text-[#A0A0A0] text-xs font-semibold uppercase tracking-wider">Member</th>
+                    <th className="px-6 py-4 text-[#A0A0A0] text-xs font-semibold uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-4 text-[#A0A0A0] text-xs font-semibold uppercase tracking-wider">First Connected</th>
+                    <th className="px-6 py-4 text-[#A0A0A0] text-xs font-semibold uppercase tracking-wider">Last Sync</th>
+                    <th className="px-6 py-4 text-[#A0A0A0] text-xs font-semibold uppercase tracking-wider w-1/4">Data Used</th>
+                    <th className="px-6 py-4 text-[#A0A0A0] text-xs font-semibold uppercase tracking-wider text-right">Actions</th>
                   </tr>
-                ))}
-                {members.length === 0 && (
-                  <tr><td colSpan="6" className="p-8 text-center text-[#A0A0A0] text-sm">No members connected yet.</td></tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-[#EAB308]/10">
+                  {members.map(member => (
+                    <tr key={member.uid} className="hover:bg-[#EAB308]/5 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="font-semibold text-sm">{member.name || "Unknown"}</div>
+                        <div className="text-xs text-[#A0A0A0] flex items-center gap-1 mt-1">
+                          <Smartphone size={12} /> {member.device_model || "Unknown Device"}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase rounded-full border ${member.isPaused ? 'text-[#EF4444] border-[#EF4444] bg-[#EF4444]/10' : 'text-[#EAB308] border-[#EAB308] bg-[#EAB308]/10'}`}>
+                          {member.isPaused ? 'Paused' : 'Active'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-xs text-[#A0A0A0] whitespace-nowrap">
+                        {formatDate(member.joined_at)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-xs text-[#A0A0A0]">{formatDate(member.last_updated)}</div>
+                        <div className="text-[10px] text-[#777] mt-0.5">{timeAgo(member.last_updated)}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="font-semibold text-sm">{(member.data_gb || 0).toFixed(2)} GB</div>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button onClick={() => setDialog({ show: true, type: 'memberMenu', data: member })} className="p-1 text-[#A0A0A0] hover:text-white transition-colors"><MoreVertical size={16} /></button>
+                      </td>
+                    </tr>
+                  ))}
+                  {members.length === 0 && (
+                    <tr><td colSpan="6" className="p-8 text-center text-[#A0A0A0] text-sm">No members connected yet.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
@@ -443,36 +467,39 @@ export default function FamguardApp() {
       {/* DIALOGS */}
       {dialog.show && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-[#1C1C1C] border border-[#333] p-6 rounded-2xl w-full max-w-sm shadow-2xl">
-            {dialog.type === 'editQuota' && (
-              <>
-                <h3 className="text-lg font-bold mb-4">Edit Pool Quota</h3>
-                <Input type="number" value={dialogInput} onChange={e => setDialogInput(e.target.value)} autoFocus />
-                <div className="flex gap-3 justify-end"><Button variant="outline" onClick={closeDialog}>Cancel</Button><Button onClick={updateQuota}>Save</Button></div>
-              </>
-            )}
+          <div className="bg-[#1C1C1C] border border-[#EAB308]/20 p-6 rounded-2xl w-full max-w-sm shadow-2xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-[#EAB308]/5 pointer-events-none"></div>
+            <div className="relative z-10">
+              {dialog.type === 'editQuota' && (
+                <>
+                  <h3 className="text-lg font-bold mb-4">Edit Pool Quota</h3>
+                  <Input type="number" value={dialogInput} onChange={e => setDialogInput(e.target.value)} autoFocus />
+                  <div className="flex gap-3 justify-end"><Button variant="outline" onClick={closeDialog}>Cancel</Button><Button onClick={updateQuota}>Save</Button></div>
+                </>
+              )}
 
-            {dialog.type === 'memberMenu' && (
-              <>
-                <h3 className="text-lg font-bold mb-4">Manage {dialog.data.name}</h3>
-                <div className="flex flex-col gap-2">
-                  <Button variant={dialog.data.isPaused ? 'primary' : 'outline'} className={dialog.data.isPaused ? '' : 'border-[#EF4444] text-[#EF4444] hover:bg-[#EF4444]/10'} onClick={() => { db.collection("groups").doc(group.group_code).collection("members").doc(dialog.data.uid).update({ isPaused: !dialog.data.isPaused }); closeDialog(); }}>
-                    {dialog.data.isPaused ? 'Resume Access' : 'Pause Access'}
-                  </Button>
-                  <Button variant="danger" onClick={() => { db.collection("groups").doc(group.group_code).collection("members").doc(dialog.data.uid).delete(); closeDialog(); }}>Remove Member</Button>
-                  <Button variant="outline" onClick={closeDialog}>Cancel</Button>
-                </div>
-              </>
-            )}
+              {dialog.type === 'memberMenu' && (
+                <>
+                  <h3 className="text-lg font-bold mb-4">Manage {dialog.data.name}</h3>
+                  <div className="flex flex-col gap-2">
+                    <Button variant={dialog.data.isPaused ? 'primary' : 'outline'} className={dialog.data.isPaused ? '' : 'border-[#EF4444] text-[#EF4444] hover:bg-[#EF4444]/10'} onClick={() => { db.collection("groups").doc(group.group_code).collection("members").doc(dialog.data.uid).update({ isPaused: !dialog.data.isPaused }); closeDialog(); }}>
+                      {dialog.data.isPaused ? 'Resume Access' : 'Pause Access'}
+                    </Button>
+                    <Button variant="danger" onClick={() => { db.collection("groups").doc(group.group_code).collection("members").doc(dialog.data.uid).delete(); closeDialog(); }}>Remove Member</Button>
+                    <Button variant="outline" onClick={closeDialog}>Cancel</Button>
+                  </div>
+                </>
+              )}
 
-            {dialog.type === 'deleteAdmin' && (
-              <>
-                <h3 className="text-[#EF4444] font-bold mb-2 flex items-center gap-2"><AlertTriangle size={20}/> Confirm Deletion</h3>
-                <p className="text-xs text-[#A0A0A0] mb-4">This permanently deletes your account and data pool. Please enter your password to confirm.</p>
-                <Input type="password" placeholder="Account Password" value={passwordConfirm} onChange={e => setPasswordConfirm(e.target.value)} />
-                <div className="flex gap-3 justify-end"><Button variant="outline" onClick={closeDialog}>Cancel</Button><Button variant="danger" onClick={deleteAdminAccount}>Delete</Button></div>
-              </>
-            )}
+              {dialog.type === 'deleteAdmin' && (
+                <>
+                  <h3 className="text-[#EF4444] font-bold mb-2 flex items-center gap-2"><AlertTriangle size={20}/> Confirm Deletion</h3>
+                  <p className="text-xs text-[#A0A0A0] mb-4">This permanently deletes your account and data pool. Please enter your password to confirm.</p>
+                  <Input type="password" placeholder="Account Password" value={passwordConfirm} onChange={e => setPasswordConfirm(e.target.value)} />
+                  <div className="flex gap-3 justify-end"><Button variant="outline" onClick={closeDialog}>Cancel</Button><Button variant="danger" onClick={deleteAdminAccount}>Delete</Button></div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
