@@ -6,7 +6,7 @@ import {
   Trash2, Pause, Play, MoreVertical, 
   Copy, Lock, Unlock, AlertTriangle, CheckCircle
 } from 'lucide-react';
-import myLogo from './logo.png'; // Updated to reference logo.jpg
+import myLogo from './logo.jpg';
 
 // --- FIREBASE INITIALIZATION ---
 const firebaseConfig = {
@@ -33,8 +33,8 @@ const Input = (props) => (
 const Button = ({ children, variant = 'primary', className = '', ...props }) => {
   const base = "px-4 py-2 rounded-md font-bold transition-opacity disabled:opacity-50 flex items-center justify-center gap-2";
   const variants = {
-    primary: "bg-[#EAB308] text-[#121212] hover:opacity-90", // Gold with dark text
-    secondary: "bg-[#D97706] text-white hover:opacity-90", // Richer gold/bronze
+    primary: "bg-[#EAB308] text-[#121212] hover:opacity-90",
+    secondary: "bg-[#D97706] text-white hover:opacity-90",
     danger: "bg-[#EF4444] text-white hover:opacity-80",
     warning: "bg-[#F59E0B] text-white hover:opacity-80",
     outline: "bg-transparent border border-[#333333] text-white hover:bg-[#262626]"
@@ -42,9 +42,19 @@ const Button = ({ children, variant = 'primary', className = '', ...props }) => 
   return <button className={`${base} ${variants[variant]} ${className}`} {...props}>{children}</button>;
 };
 
+// --- HELPER FUNCTION ---
+const formatDate = (timestamp) => {
+  if (!timestamp) return "Unknown";
+  // If it's a Firestore Timestamp, it will have a .toDate() method
+  if (timestamp.toDate) return timestamp.toDate().toLocaleString();
+  // Otherwise, fallback to parsing standard strings/numbers
+  return new Date(timestamp).toLocaleString();
+};
+
 export default function FamguardApp() {
   // --- STATE ---
   const [isInitializing, setIsInitializing] = useState(true);
+  const [isGroupLoading, setIsGroupLoading] = useState(true); // FIX 1: Tracks Firestore group fetching
   const [user, setUser] = useState(null);
   const [group, setGroup] = useState(null);
   const [members, setMembers] = useState([]);
@@ -60,7 +70,7 @@ export default function FamguardApp() {
   const [dialogInput, setDialogInput] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
 
-  // Refs for tracking initial load to prevent note overwrite
+  // Refs for tracking initial load
   const isFirstGroupLoad = useRef(true);
 
   // --- LISTENERS ---
@@ -68,10 +78,14 @@ export default function FamguardApp() {
     const unsubscribeAuth = auth.onAuthStateChanged((currentUser) => {
       setUser(currentUser);
       setIsInitializing(false);
+      
       if (!currentUser) {
         setGroup(null);
         setMembers([]);
         isFirstGroupLoad.current = true;
+        setIsGroupLoading(false); // Stop loading if no user is signed in
+      } else {
+        setIsGroupLoading(true); // Start loading group data now that we have a user
       }
     });
     return () => unsubscribeAuth();
@@ -95,7 +109,11 @@ export default function FamguardApp() {
         } else {
           setGroup(null);
         }
-      }, (error) => showToast("Database error: " + error.message, 'error'));
+        setIsGroupLoading(false); // FIX 1: Firestore finished responding
+      }, (error) => {
+        showToast("Database error: " + error.message, 'error');
+        setIsGroupLoading(false); 
+      });
 
     return () => unsubscribeGroup();
   }, [user]);
@@ -207,7 +225,16 @@ export default function FamguardApp() {
   const poolPercent = Math.min((totalConsumed / safeQuota) * 100, 100);
 
   // --- VIEWS ---
-  if (isInitializing) return <div className="min-h-screen bg-[#121212] flex items-center justify-center text-white">Loading...</div>;
+  
+  // FIX 1: Show a loading screen while auth IS checking OR if the user exists but Firestore is still fetching
+  if (isInitializing || (user && isGroupLoading)) {
+    return (
+      <div className="min-h-screen bg-[#121212] flex flex-col items-center justify-center text-white">
+        <img src={myLogo} alt="Loading" className="w-16 h-16 mb-4 animate-pulse object-contain drop-shadow-[0_0_15px_rgba(234,179,8,0.5)]" />
+        <p className="text-[#A0A0A0] font-medium tracking-wider">Connecting to pool...</p>
+      </div>
+    );
+  }
 
   if (!user) {
     return (
@@ -252,7 +279,7 @@ export default function FamguardApp() {
 
   return (
     <div className="min-h-screen bg-[#121212] text-white p-6 flex justify-center">
-      <div className="w-full max-w-5xl">
+      <div className="w-full max-w-6xl">
         <header className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-3 text-2xl font-bold">
             <img src={myLogo} alt="Famguard Logo" className="w-10 h-10 object-contain drop-shadow-[0_0_10px_rgba(234,179,8,0.2)]" /> Famguard
@@ -313,6 +340,9 @@ export default function FamguardApp() {
                 <tr className="bg-[#262626] text-[#A0A0A0] text-xs uppercase tracking-wider">
                   <th className="p-4 font-medium">Member</th>
                   <th className="p-4 font-medium">Status</th>
+                  {/* FIX 2: Added First Joined and Last Sync Columns */}
+                  <th className="p-4 font-medium">First Joined</th>
+                  <th className="p-4 font-medium">Last Sync</th>
                   <th className="p-4 font-medium w-1/4">Data Used</th>
                   <th className="p-4 font-medium text-right">Actions</th>
                 </tr>
@@ -329,6 +359,13 @@ export default function FamguardApp() {
                         {member.isPaused ? 'Paused' : 'Active'}
                       </span>
                     </td>
+                    {/* FIX 2: Populating the date columns */}
+                    <td className="p-4 text-sm text-[#A0A0A0] whitespace-nowrap">
+                      {formatDate(member.joined_at)}
+                    </td>
+                    <td className="p-4 text-sm text-[#A0A0A0] whitespace-nowrap">
+                      {formatDate(member.last_updated)}
+                    </td>
                     <td className="p-4">
                       <div className="font-bold text-sm mb-1">{(member.data_gb || 0).toFixed(2)} GB</div>
                       <div className="h-1.5 w-full bg-[#121212] rounded-full overflow-hidden">
@@ -341,7 +378,7 @@ export default function FamguardApp() {
                   </tr>
                 ))}
                 {members.length === 0 && (
-                  <tr><td colSpan="4" className="p-8 text-center text-[#A0A0A0]">No members connected yet.</td></tr>
+                  <tr><td colSpan="6" className="p-8 text-center text-[#A0A0A0]">No members connected yet.</td></tr>
                 )}
               </tbody>
             </table>
